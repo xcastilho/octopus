@@ -3,11 +3,10 @@ import System.Directory
 
 main :: IO ()
 main = do
-  local <- doesFileExist localFile
-  if local then runOctopus localFile
-           else runOctopus userGlobalFile
-                where localFile = ".octopus"
-                      userGlobalFile = "~/.octopus"
+  home  <- getHomeDirectory
+  local <- doesFileExist ".octopus"
+  if local then runOctopus ".octopus"
+           else runOctopus (home ++ "/.octopus")
                       
 --dummy function
 runOctopus :: FilePath -> IO ()

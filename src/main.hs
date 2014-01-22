@@ -6,7 +6,7 @@ import Data.Maybe
 
 --the following functions will be moved to a different module
 
-dispatch :: [(String, [String] -> IO ())]
+dispatch :: [(String, FilePath -> [String] -> IO ())]
 dispatch = [("add", add),
             ("view",view),
             ("remove",remove)]
@@ -16,6 +16,10 @@ dispatch = [("add", add),
 
 errorExit :: String -> IO ()
 errorExit arg = putStrLn ("command " ++ arg ++ " is invalid.")
+
+argumentCheck :: [String] -> [String]
+argumentCheck args = if null args then ["view"]
+                                  else args
 
 ------
 
@@ -28,18 +32,26 @@ main = do
                      
 runOctopus :: FilePath -> IO ()
 runOctopus file = do
-  (command:arguments) <- getArgs
-  let queryResponse = lookup command dispatch
+  args <- getArgs
+  let (command:arguments) = argumentCheck args
+      queryResponse = lookup command dispatch
   if isJust queryResponse then let (Just task) = queryResponse 
-                               in task arguments
+                               in task file arguments
                           else errorExit command
 
 --dummy functions
-add :: [String] -> IO ()
-add args = putStrLn "function add dummied"
+add :: FilePath -> [String] -> IO ()
+add file args = if (length args) >= 2 then let (activity:time:rest) = args
+                                          in runAdd file activity time --change here to warn if arguments have been ignored
+                                     else putStrLn "insuficient arguments for command add"
+                                       
+view :: FilePath -> [String] -> IO ()
+view file args = putStrLn "function view dummied"
 
-view :: [String] -> IO ()
-view args = putStrLn "function view dummied"
+remove :: FilePath -> [String] -> IO ()
+remove file args = putStrLn "function remove dummied"
 
-remove :: [String] -> IO ()
-remove args = putStrLn "function remove dummied"
+--actual execution
+runAdd :: FilePath -> String -> String -> IO ()
+runAdd file activity time = appendFile file (activity ++ " " ++ time ++ "\n")
+                            
